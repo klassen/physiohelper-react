@@ -1203,7 +1203,7 @@ export default function Home() {
                       const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
                       console.log('Today is:', todayStr);
                       
-                      const days = [];
+                      const days: Array<{ dateStr: string; displayDate: string; label: string; value: number }> = [];
                       
                       // Create array of last 30 days (29 days ago through today)
                       for (let daysAgo = 29; daysAgo >= 0; daysAgo--) {
