@@ -469,7 +469,18 @@ export default function Home() {
   return (
     <main className="min-h-screen p-8 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold mb-2">PhysioHelper</h1>
+        <div className="flex justify-between items-center mb-2">
+          <h1 className="text-4xl font-bold">PhysioHelper</h1>
+          <button
+            onClick={async () => {
+              await fetch('/api/auth/logout', { method: 'POST' });
+              window.location.href = '/login';
+            }}
+            className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          >
+            Logout
+          </button>
+        </div>
         <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
           Track your physiotherapy workouts
         </p>
