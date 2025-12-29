@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Workout {
+  id                String            @id @default(cuid())
+  name              String
+  description       String?
+  targetDaysPerWeek Int               @default(3) // Goal: how many days per week to do this workout
+  exercises         WorkoutExercise[]
+  sessions          WorkoutSession[]
+  createdAt         String            // Local datetime string (YYYY-MM-DD HH:MM:SS)
+  updatedAt         String            // Local datetime string (YYYY-MM-DD HH:MM:SS)
+}
+
+model WorkoutExercise {
+  id             String   @id @default(cuid())
+  workoutId      String
+  workout        Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exerciseId     String
+  exercise       Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  targetSets     Int      @default(3)
+  targetReps     Int?     // For rep-based exercises
+  targetDuration Int?     // For time-based exercises (in seconds)
+  orderIndex     Int      @default(0) // Order of exercises in the workout
+
+  @@unique([workoutId, exerciseId])
+}
+
+model WorkoutSession {
+  id          String       @id @default(cuid())
+  workoutId   String
+  workout     Workout      @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  completedAt String       // Local datetime string (YYYY-MM-DD HH:MM:SS)
+  notes       String?
+  workoutSets WorkoutSet[]
+}
+
+model Exercise {
+  id              String            @id @default(cuid())
+  name            String
+  type            String            @default("REP_BASED") // REP_BASED or TIME_BASED
+  description     String?
+  targetSets      Int               @default(3)
+  targetReps      Int?              // For rep-based exercises
+  targetDuration  Int?              // For time-based exercises (in seconds)
+  targetDaysPerWeek Int             @default(3) // Goal: how many days per week
+  archived        Boolean           @default(false) // Whether the exercise is archived
+  createdAt       String            // Local datetime string (YYYY-MM-DD HH:MM:SS)
+  updatedAt       String            // Local datetime string (YYYY-MM-DD HH:MM:SS)
+  workoutSets     WorkoutSet[]
+  workoutExercises WorkoutExercise[]
+  sessions        ExerciseSession[]
+}
+
+model ExerciseSession {
+  id          String       @id @default(cuid())
+  exerciseId  String
+  exercise    Exercise     @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  completedAt String       // Local datetime string (YYYY-MM-DD HH:MM:SS)
+  sets        Int
+  reps        Int?         // For rep-based (average for backward compatibility)
+  weight      Float?       // Optional weight in kg
+  duration    Int?         // For time-based (average for backward compatibility)
+  setsData    String?      // JSON array of individual set data
+  notes       String?
+  targetSets  Int?         // Snapshot of target at time of logging
+  targetReps  Int?         // Snapshot of target at time of logging
+  targetDuration Int?      // Snapshot of target at time of logging
+}
+
+model WorkoutSet {
+  id         String         @id @default(cuid())
+  sessionId  String?
+  session    WorkoutSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   Exercise       @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  reps       Int?
+  weight     Float?         // Optional weight in kg
+  duration   Int?           // Optional duration in seconds
+  notes      String?
+  completedAt String        // Local datetime string (YYYY-MM-DD HH:MM:SS)
+}
