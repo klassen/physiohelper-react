@@ -8,7 +8,7 @@ export async function PUT(
 ) {
   try {
     const body = await request.json();
-    const { sets, reps, weight, duration, notes, setsData } = body;
+    const { sets, reps, weight, duration, notes, setsData, completedAt } = body;
 
     const session = await prisma.exerciseSession.update({
       where: { id: params.sessionId },
@@ -19,7 +19,8 @@ export async function PUT(
         duration,
         setsData,
         notes,
-        completedAt: getLocalDateTime(), // Update completion time
+        // Use client-provided completedAt if available, otherwise fallback to server time
+        completedAt: completedAt || getLocalDateTime(),
       },
       include: {
         exercise: true,

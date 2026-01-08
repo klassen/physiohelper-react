@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { formatDisplayDateTime } from '@/lib/utils/dateUtils';
+import { formatDisplayDateTime, getLocalDateTime, getLocalDate } from '@/lib/utils/dateUtils';
 
 interface Exercise {
   id: string;
@@ -211,12 +211,16 @@ export default function Home() {
     }
 
     try {
+      // Get current client time
+      const completedAt = getLocalDateTime();
+      
       const payload = selectedExercise.type === 'TIME_BASED' 
         ? {
             sets: completedSets.length,
             duration: Math.round(completedSets.reduce((a, b) => a + b, 0) / completedSets.length),
             setsData: JSON.stringify(completedSets), // Store individual set times
             notes: sessionForm.notes,
+            completedAt, // Send client time to server
           }
         : {
             sets: completedSets.length,
@@ -224,6 +228,7 @@ export default function Home() {
             weight: sessionForm.weight ? parseFloat(sessionForm.weight) : null,
             setsData: JSON.stringify(completedSets), // Store individual set reps
             notes: sessionForm.notes,
+            completedAt, // Send client time to server
           };
 
       // Update existing session or create new one
@@ -282,7 +287,8 @@ export default function Home() {
     
     // Check for today's session
     try {
-      const response = await fetch(`/api/exercises/${exercise.id}/sessions/today`);
+      const todayDate = getLocalDate();
+      const response = await fetch(`/api/exercises/${exercise.id}/sessions/today?date=${todayDate}`);
       if (response.ok) {
         const todaySession = await response.json();
         if (todaySession) {

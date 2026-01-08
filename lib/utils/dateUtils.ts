@@ -3,10 +3,17 @@
  * 
  * 🚨 CRITICAL: Always use local time, NEVER UTC or ISO dates!
  * All dates in the database are stored as local datetime strings (YYYY-MM-DD HH:MM:SS).
+ * 
+ * ⚠️ IMPORTANT: To avoid timezone issues:
+ * - Client should ALWAYS generate dates using getLocalDateTime() and send them to the server
+ * - Server should ACCEPT the date from client, never generate its own (to prevent server/client timezone mismatch)
+ * - Only generate dates on the server if no client date is provided (for backwards compatibility)
  */
 
 /**
  * Get current local datetime as string
+ * Can be used on both client and server side.
+ * When logging activities, ALWAYS call this on the CLIENT and send to server.
  * @returns Local datetime string in format: YYYY-MM-DD HH:MM:SS
  */
 export function getLocalDateTime(): string {
@@ -43,6 +50,8 @@ export function parseLocalDateTime(dateString: string): Date {
 
 /**
  * Get local date string (without time)
+ * Can be used on both client and server side.
+ * When checking "today" status, ALWAYS call this on the CLIENT and send to server.
  * @returns Local date string in format: YYYY-MM-DD
  */
 export function getLocalDate(): string {

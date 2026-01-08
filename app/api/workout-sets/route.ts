@@ -24,7 +24,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { exerciseId, reps, weight, duration, notes } = body;
+    const { exerciseId, reps, weight, duration, notes, completedAt } = body;
 
     if (!exerciseId || reps === undefined) {
       return NextResponse.json(
@@ -40,7 +40,8 @@ export async function POST(request: Request) {
         weight: weight ? parseFloat(weight) : null,
         duration: duration ? parseInt(duration) : null,
         notes,
-        completedAt: getLocalDateTime(),
+        // Use client-provided completedAt if available, otherwise fallback to server time
+        completedAt: completedAt || getLocalDateTime(),
       },
       include: {
         exercise: true,

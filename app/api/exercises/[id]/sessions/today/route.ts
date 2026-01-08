@@ -1,16 +1,20 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getLocalDateTime, parseLocalDateTime } from '@/lib/utils/dateUtils';
+import { getLocalDate, parseLocalDateTime } from '@/lib/utils/dateUtils';
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    // Get today's date in local time
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    // Get the current date from query parameter (client-provided) or fallback to server time
+    const { searchParams } = new URL(request.url);
+    const clientDate = searchParams.get('date') || getLocalDate();
+    
+    // Parse the date to create start and end bounds for "today"
+    const [year, month, day] = clientDate.split('-').map(Number);
+    const todayStart = new Date(year, month - 1, day);
+    const todayEnd = new Date(year, month - 1, day + 1);
 
     // Get all sessions for this exercise
     const sessions = await prisma.exerciseSession.findMany({

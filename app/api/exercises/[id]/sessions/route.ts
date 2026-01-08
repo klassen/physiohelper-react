@@ -8,7 +8,7 @@ export async function POST(
 ) {
   try {
     const body = await request.json();
-    const { sets, reps, weight, duration, notes, setsData } = body;
+    const { sets, reps, weight, duration, notes, setsData, completedAt } = body;
 
     // Get the exercise to snapshot the current targets
     const exercise = await prisma.exercise.findUnique({
@@ -22,7 +22,8 @@ export async function POST(
       );
     }
 
-    const now = getLocalDateTime();
+    // Use client-provided completedAt if available, otherwise fallback to server time
+    const now = completedAt || getLocalDateTime();
     const session = await prisma.exerciseSession.create({
       data: {
         exerciseId: params.id,
