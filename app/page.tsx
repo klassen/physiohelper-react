@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { formatDisplayDateTime, getLocalDateTime, getLocalDate } from '@/lib/utils/dateUtils';
 
 interface Exercise {
@@ -60,6 +60,8 @@ export default function Home() {
   });
 
   const [repCounter, setRepCounter] = useState(0);
+  const repHoldTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const repHoldIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -388,6 +390,26 @@ export default function Home() {
 
     // Reset timer
     setTimerState({ isRunning: false, seconds: 0, intervalId: null });
+  };
+
+  const handleRepHoldStart = () => {
+    setRepCounter(prev => prev + 1);
+    repHoldTimeoutRef.current = setTimeout(() => {
+      repHoldIntervalRef.current = setInterval(() => {
+        setRepCounter(prev => prev + 1);
+      }, 100);
+    }, 500);
+  };
+
+  const handleRepHoldEnd = () => {
+    if (repHoldTimeoutRef.current) {
+      clearTimeout(repHoldTimeoutRef.current);
+      repHoldTimeoutRef.current = null;
+    }
+    if (repHoldIntervalRef.current) {
+      clearInterval(repHoldIntervalRef.current);
+      repHoldIntervalRef.current = null;
+    }
   };
 
   const completeRepSet = () => {
@@ -797,8 +819,14 @@ export default function Home() {
                           {/* Big Green + Button */}
                           <button
                             type="button"
-                            onClick={() => setRepCounter(prev => prev + 1)}
-                            className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600 text-white text-5xl font-bold shadow-lg transition-all active:scale-95"
+                            onMouseDown={handleRepHoldStart}
+                            onMouseUp={handleRepHoldEnd}
+                            onMouseLeave={handleRepHoldEnd}
+                            onTouchStart={(e) => { e.preventDefault(); handleRepHoldStart(); }}
+                            onTouchEnd={handleRepHoldEnd}
+                            onTouchCancel={handleRepHoldEnd}
+                            onContextMenu={(e) => e.preventDefault()}
+                            className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600 text-white text-5xl font-bold shadow-lg transition-all active:scale-95 select-none"
                           >
                             +
                           </button>
@@ -811,6 +839,9 @@ export default function Home() {
                               • PB: {personalBest}
                             </span>
                           )}
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                          Tap to add 1 rep · Hold to auto-count
                         </p>
                         
                         <div className="mt-4">
